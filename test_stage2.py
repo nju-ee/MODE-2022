@@ -15,8 +15,8 @@ import numpy as np
 import time
 import math
 import cv2
-from dataloader import list_deep360_file as lt
-from dataloader import MyDeep360Loader as DA
+from dataloader import list_file as lt
+from dataloader import data_loader as DA
 from models import *
 from utils import evaluation
 import prettytable as pt

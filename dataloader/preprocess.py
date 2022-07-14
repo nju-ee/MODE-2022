@@ -7,9 +7,6 @@ import math
 __imagenet_stats = {'mean': [0.485, 0.456, 0.406],
                    'std': [0.229, 0.224, 0.225]}
 
-#__imagenet_stats = {'mean': [0.5, 0.5, 0.5],
-#                   'std': [0.5, 0.5, 0.5]}
-
 __imagenet_pca = {
     'eigval': torch.Tensor([0.2175, 0.0188, 0.0045]),
     'eigvec': torch.Tensor([
@@ -18,9 +15,6 @@ __imagenet_pca = {
         [-0.5836, -0.6948,  0.4203],
     ])
 }
-
-# __deep360_stats = {'mean': [242.095],
-#                    'std': [398.939]}
 
 __deep360_stats = {'mean': [0],
                    'std': [1]}
@@ -69,10 +63,6 @@ def get_transform_stage1(name='imagenet', normalize=None, augment=True):
 def get_transform_stage2(name='deep360', normalize=None, augment=False):
     normalize = __deep360_stats
     return depth_normalize(normalize=normalize)
-    # if augment:
-    #         return depth_augment(normalize=normalize)
-    # else:
-    #         return depth_normalize(normalize=normalize)
 
 
 class Lighting(object):

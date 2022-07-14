@@ -1,5 +1,6 @@
 from __future__ import print_function
 import argparse
+from ast import arg
 import os
 import random
 import torch
@@ -10,17 +11,17 @@ import torch.nn.functional as F
 import numpy as np
 import time
 import math
-from dataloader import list_deep360_file as lt
-from dataloader import MyDeep360Loader as DA
+from dataloader import list_file as lt
+from dataloader import data_loader as DA
 from models import *
 from utils import evaluation
 import prettytable as pt
 from torch.utils.tensorboard import SummaryWriter
 
-parser = argparse.ArgumentParser(description='MODE-Fusion')
+parser = argparse.ArgumentParser(description='MODE_Fusion')
 parser.add_argument('--maxdepth', type=float ,default=1000.0,
                     help='maximum depth in meters')
-parser.add_argument('--model', default='UnetRgbConf',
+parser.add_argument('--model', default='MODE_Fusion',
                     help='select model')
 parser.add_argument('--dbname', default= "Deep360",
                     help='dataset name')
@@ -42,7 +43,7 @@ parser.add_argument('--lr', type=float, default=0.0001,
                     help='initial learning rate')
 parser.add_argument('--loadmodel', default= None,
                     help='load model path')
-parser.add_argument('--savemodel', default='./checkpoint/stage2/',
+parser.add_argument('--savemodel', default='./checkpoint/fusion/',
                     help='save model path')
 parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='disables CUDA training')
@@ -57,10 +58,6 @@ if args.cuda:
 
 if args.dbname == 'Deep360':
     train_depthes, train_confs, train_rgbs, train_gt, val_depthes, val_confs, val_rgbs, val_gt = lt.listfile_stage2_train(args.datapath_input, args.datapath_dataset, args.soil)
-elif args.dbname == '3D60':
-    train_depthes, train_confs, train_rgbs, train_gt, val_depthes, val_confs, val_rgbs, val_gt = lt.listfile_stage2_train_3d60(args.datapath_input)
-else:
-    train_depthes, train_confs, train_rgbs, train_gt, val_depthes, val_confs, val_rgbs, val_gt = lt.listfile_stage2_train_omnifisheye(args.datapath_input, args.datapath_dataset)
 
 TrainImgLoader = torch.utils.data.DataLoader(
         DA.myDataLoaderStage2(train_depthes, train_confs, train_rgbs, train_gt, resize=args.resize, training=True), 
@@ -70,24 +67,11 @@ ValImgLoader = torch.utils.data.DataLoader(
         DA.myDataLoaderStage2(val_depthes, val_confs, val_rgbs, val_gt, resize=False, training=False), 
         batch_size= 8, shuffle= False, num_workers= 8, drop_last=False)
 
-if args.model == 'MultiviewFusion0':
-    model = MultiviewFusion0(args.maxdepth)
-elif args.model == 'Baseline':
+if args.model == 'Baseline':
     model = Baseline(args.maxdepth)
-elif args.model == 'MultiviewFusion2':
-    model = MultiviewFusion2(args.maxdepth)
-elif args.model == 'Unet':
-    model = Unet(args.maxdepth, [32, 64, 128, 256])
-elif args.model == 'UnetRgb':
-    model = UnetRgb(args.maxdepth, [32, 64, 128, 256])
-elif args.model == 'UnetRgbConf':
-    if args.dbname == '3D60':
-        model = UnetRgbConf(args.maxdepth, [32, 64, 128, 256], {'depth': 4, 'rgb': 6})
-    else:
-        model = UnetRgbConf(args.maxdepth, [32, 64, 128, 256], {'depth': 12, 'rgb': 12})
-        # model = UnetRgbConf(args.maxdepth, [32, 64, 128, 256], {'depth': 2, 'rgb': 3})
-elif args.model == 'StereoFusion0':
-    model = StereoFusion0()
+elif args.model == 'MODE_Fusion':
+    if args.dbname == 'Deep360':
+        model = MODE_Fusion(args.maxdepth, [32, 64, 128, 256], {'depth': 12, 'rgb': 12})
 else:
     print('no model')
 
@@ -103,7 +87,6 @@ if args.loadmodel is not None:
 print('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
 
 optimizer = optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
-# optimizer = optim.SGD(model.parameters(), lr = 0.005, momentum=0.9)
 
 def silog_loss(lamda, pred, gt):
     mask1 = gt > 0
@@ -111,16 +94,6 @@ def silog_loss(lamda, pred, gt):
     mask = mask1 * mask2
     d = torch.log(pred[mask])-torch.log(gt[mask])
     return torch.mean(torch.square(d)) - lamda * torch.square(torch.mean(d))
-
-def log_loss_with_soil_mask(pred, gt, soil_mask, lamda_soil):
-    mask1 = gt > 0
-    mask2 = pred > 0
-    mask = mask1 * mask2
-    d = torch.log(pred[mask])-torch.log(gt[mask])
-    d = torch.square(d)
-    loss_soil = torch.mean(d[soil_mask[mask]>0])
-    loss_clean = torch.mean(d[soil_mask[mask]==0])
-    return lamda_soil * loss_soil + (1-lamda_soil) * loss_clean
 
 def train(depthes, confs, rgbs, gt):
     model.train()
@@ -138,16 +111,13 @@ def train(depthes, confs, rgbs, gt):
 
     optimizer.zero_grad()
     
-    if args.model == 'Baseline' or args.model == 'Unet':
+    if args.model == 'Baseline':
         output = model(depthes)
-    elif args.model == 'UnetRgb':
-        output = model(depthes, rgbs)
-    else:
+    elif args.model == 'MODE_Fusion':
         output = model(depthes, confs, rgbs)
     output = torch.squeeze(output, 1)
-    # loss = F.smooth_l1_loss(output, gt, reduction='mean')
-    loss = silog_loss(0.5, output[mask], gt[mask])
 
+    loss = silog_loss(0.5, output[mask], gt[mask])
     loss.backward()
     optimizer.step()
 
@@ -167,11 +137,9 @@ def val(depthes, confs, rgbs, gt):
     #----
 
     with torch.no_grad():
-        if args.model == 'Baseline' or args.model == 'Unet':
+        if args.model == 'Baseline':
             output = model(depthes)
-        elif args.model == 'UnetRgb':
-            output = model(depthes, rgbs)
-        else:
+        elif args.model == 'MODE_Fusion':
             output = model(depthes, confs, rgbs)
         pred = torch.squeeze(output, 1)
 
@@ -189,38 +157,30 @@ def val(depthes, confs, rgbs, gt):
 
 def adjust_learning_rate(optimizer, epoch):
     lr = args.lr
-    # if epoch<5:
-    #     lr = 0.001
-    # elif epoch<10:
-    #     lr = 0.0001
-    # elif epoch<30:
-    #     lr = 0.00001
-    # else:
-    #     lr = 0.000001
-    # print('learning rate = ', lr)
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
 def main():
-    if not os.path.exists(args.savemodel+'log/'):
-        os.makedirs(args.savemodel+'log/')
-    writer = SummaryWriter(args.savemodel+'log/', purge_step = args.epoch_start)
+    log_path = os.path.join(args.savemodel, args.model, args.dbname, 'log')
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+    writer = SummaryWriter(log_path, purge_step = args.epoch_start)
 
     start_full_time = time.time()
     for epoch in range(0, args.epochs):
-        # print('This is %d-th epoch' %(epoch+args.epoch_start))
+        print('This is %d-th epoch' %(epoch+args.epoch_start))
         total_train_loss = 0
         adjust_learning_rate(optimizer,epoch+args.epoch_start)
 
         #--- TRAINING ---#
         for batch_idx, (_, depthes, confs, rgbs, gt) in enumerate(TrainImgLoader):
             loss = train(depthes, confs, rgbs, gt)
-            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+" 训练进度： {:.2f}%".format(100 *  (batch_idx+1)/ len(TrainImgLoader)), end='')
+            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+"： {:.2f}%".format(100 *  (batch_idx+1)/ len(TrainImgLoader)), end='')
             total_train_loss += loss
         writer.add_scalar('Training Loss', total_train_loss/len(TrainImgLoader), epoch+args.epoch_start)
 
         #--- SAVING ---#
-        savefilename = args.savemodel+'/checkpoint_stage2_'+args.model+'_lr_'+str(args.lr)+'_epoch'+str(epoch+args.epoch_start)+'.tar'
+        savefilename = os.path.join(args.savemodel, args.model, args.dbname,'ckpt_stage2_epoch%d.tar'%(epoch+args.epoch_start))
         torch.save({
                 'state_dict': model.state_dict()
             }, savefilename)
@@ -228,16 +188,16 @@ def main():
         #--- VALIDATION ---#
         total_eval_metrics = np.zeros(8)
         for batch_idx, (_, depthes, confs, rgbs, gt) in enumerate(ValImgLoader):
-            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+" 验证进度： {:.2f}%".format(100 *  (batch_idx+1)/ len(ValImgLoader)), end='')
+            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+"： {:.2f}%".format(100 *  (batch_idx+1)/ len(ValImgLoader)), end='')
             eval_metrics = val(depthes, confs, rgbs, gt)
             total_eval_metrics += eval_metrics
 
         eval_metrics = total_eval_metrics / len(ValImgLoader)
-        # tb = pt.PrettyTable()
-        # tb.field_names = ["MAE", "RMSE", "AbsRel", "SqRel", "SILog", "δ1 (%)", "δ2 (%)", "δ3 (%)"]
-        # tb.add_row(list(eval_metrics))
-        # print('\n')
-        # print(tb)
+        tb = pt.PrettyTable()
+        tb.field_names = ["MAE", "RMSE", "AbsRel", "SqRel", "SILog", "δ1 (%)", "δ2 (%)", "δ3 (%)"]
+        tb.add_row(list(eval_metrics))
+        print('\n')
+        print(tb)
         writer.add_scalar('MAE', eval_metrics[0], epoch+args.epoch_start)
         writer.add_scalar('RMSE', eval_metrics[1], epoch+args.epoch_start)
         writer.add_scalar('AbsRel', eval_metrics[2], epoch+args.epoch_start)
@@ -248,7 +208,6 @@ def main():
     print('full training time = %.2f HR' %((time.time() - start_full_time)/3600))
 
     writer.close()
-
 
 if __name__ == '__main__':
    main()
