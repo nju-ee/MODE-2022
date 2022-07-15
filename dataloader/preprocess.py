@@ -64,7 +64,6 @@ def get_transform_stage2(name='deep360', normalize=None, augment=False):
     normalize = __deep360_stats
     return depth_normalize(normalize=normalize)
 
-
 class Lighting(object):
     """Lighting noise(AlexNet - style PCA - based noise)"""
 
