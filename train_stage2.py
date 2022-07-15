@@ -18,7 +18,7 @@ from utils import evaluation
 import prettytable as pt
 from torch.utils.tensorboard import SummaryWriter
 
-parser = argparse.ArgumentParser(description='MODE_Fusion')
+parser = argparse.ArgumentParser(description='MODE_Fusion_train')
 parser.add_argument('--maxdepth', type=float ,default=1000.0,
                     help='maximum depth in meters')
 parser.add_argument('--model', default='MODE_Fusion',
@@ -29,7 +29,7 @@ parser.add_argument('--soil', action='store_true', default=False,
                     help='train fusion network from soiled data (only for Deep360)')
 parser.add_argument('--resize', action='store_true', default=False,
                     help='resize the input by downsampling to 1/2 of its original size')
-parser.add_argument('--datapath-input', default='./MODE-Disparity_output/',
+parser.add_argument('--datapath-input', default='./MODE_Disparity_output/',
                     help='the path of the input of stage2, which is just the output of stage1')
 parser.add_argument('--datapath-dataset', default='./datasets/Deep360/',
                     help='the path of the dataset')
@@ -175,7 +175,7 @@ def main():
         #--- TRAINING ---#
         for batch_idx, (_, depthes, confs, rgbs, gt) in enumerate(TrainImgLoader):
             loss = train(depthes, confs, rgbs, gt)
-            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+"： {:.2f}%".format(100 *  (batch_idx+1)/ len(TrainImgLoader)), end='')
+            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+": {:.2f}%".format(100 *  (batch_idx+1)/ len(TrainImgLoader)), end='')
             total_train_loss += loss
         writer.add_scalar('Training Loss', total_train_loss/len(TrainImgLoader), epoch+args.epoch_start)
 
@@ -188,7 +188,7 @@ def main():
         #--- VALIDATION ---#
         total_eval_metrics = np.zeros(8)
         for batch_idx, (_, depthes, confs, rgbs, gt) in enumerate(ValImgLoader):
-            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+"： {:.2f}%".format(100 *  (batch_idx+1)/ len(ValImgLoader)), end='')
+            print("\rStage2 Epoch"+str(epoch+args.epoch_start)+": {:.2f}%".format(100 *  (batch_idx+1)/ len(ValImgLoader)), end='')
             eval_metrics = val(depthes, confs, rgbs, gt)
             total_eval_metrics += eval_metrics
 
@@ -210,4 +210,4 @@ def main():
     writer.close()
 
 if __name__ == '__main__':
-   main()
+    main()
