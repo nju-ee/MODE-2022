@@ -9,7 +9,7 @@ import numpy as np
 
 import sys
 sys.path.append('../')
-from . import SphereConv
+from .basic import SphereConv
 
 
 def convbn(in_planes, out_planes, kernel_size, stride, pad, dilation):
@@ -147,66 +147,6 @@ class SphereBasicBlock(nn.Module):
     return out
 
 
-class RegularBottleneck(nn.Module):
-  expansion = 4
-
-  def __init__(self, inplanes, planes, stride, downsample, pad, dilation):
-    super(RegularBottleneck, self).__init__()
-    self.conv1 = nn.Sequential(convbn(inplanes, planes, 1, 1, 0, 1), nn.ReLU(inplace=True))
-
-    self.conv2 = nn.Sequential(convbn(planes, planes, 3, stride, pad, dilation), nn.ReLU(inplace=True))
-
-    self.conv3 = convbn(planes, planes * self.expansion, 1, 1, 0, 1)
-
-    self.relu = nn.ReLU(inplace=True)
-
-    self.downsample = downsample
-    self.stride = stride
-
-  def forward(self, x):
-    out = self.conv1(x)
-    out = self.conv2(out)
-    out = self.conv3(out)
-
-    if self.downsample is not None:
-      x = self.downsample(x)
-
-    out += x
-    out = self.relu(out)
-
-    return out
-
-
-class SphereBottleneck(nn.Module):
-  expansion = 4
-
-  def __init__(self, in_height, in_width, sphereType, inplanes, planes, stride, downsample, pad, dilation):
-    super(SphereBottleneck, self).__init__()
-    self.conv1 = nn.Sequential(convbn(inplanes, planes, 1, 1, 0, 1), nn.ReLU(inplace=True))
-
-    self.conv2 = nn.Sequential(sphereConvbn(in_height, in_width, sphereType, planes, planes, 3, stride, pad, dilation), nn.ReLU(inplace=True))
-
-    self.conv3 = convbn(planes, planes * self.expansion, 1, 1, 0, 1)
-
-    self.relu = nn.ReLU(inplace=True)
-
-    self.downsample = downsample
-    self.stride = stride
-
-  def forward(self, x):
-    out = self.conv1(x)
-    out = self.conv2(out)
-    out = self.conv3(out)
-
-    if self.downsample is not None:
-      x = self.downsample(x)
-
-    out += x
-    out = self.relu(out)
-
-    return out
-
-
 # NOTE: currently used feature extraction block
 class sphere_feature_extraction(nn.Module):
   def __init__(self, in_height, in_width, sphereType):
@@ -219,16 +159,6 @@ class sphere_feature_extraction(nn.Module):
     self.layer3 = self._make_layer(RegularBasicBlock, in_height // 4, in_width // 4, sphereType, 64, 64, 4, 1, 1, 2)  # regular dilation
 
     self.layer4 = self._make_layer(SphereBasicBlock, in_height // 4, in_width // 4, sphereType, 64, 128, 8, 1, 1, 1)  # sphere
-    #self.layer5 = self._make_layer(RegularBottleneck, in_height // 4, in_width // 4, sphereType, 64, 32, 8, 1, 1, 1)
-
-    # self.branch1 = nn.Sequential(nn.AvgPool2d((64, 64), stride=(64, 64)), convbn(128, 32, 1, 1, 0, 1), nn.ReLU(inplace=True))  # 1x1 sphere has same behavior with regular conv
-
-    # self.branch2 = nn.Sequential(nn.AvgPool2d((32, 32), stride=(32, 32)), convbn(128, 32, 1, 1, 0, 1), nn.ReLU(inplace=True))
-
-    # self.branch3 = nn.Sequential(nn.AvgPool2d((16, 16), stride=(16, 16)), convbn(128, 32, 1, 1, 0, 1), nn.ReLU(inplace=True))
-
-    # self.branch4 = nn.Sequential(nn.AvgPool2d((8, 8), stride=(8, 8)), convbn(128, 32, 1, 1, 0, 1), nn.ReLU(inplace=True))
-
     self.lastconv = nn.Sequential(convbn(256, 128, 1, 1, 0, 1), nn.ReLU(inplace=True), convbn(128, 128, 3, 1, 1, 1), nn.ReLU(inplace=True), convbn(128, 32, 1, 1, 0, 1), nn.ReLU(inplace=True))
 
   def _make_layer(self, block, height, width, sphereType, inplanes, planes, blocks, stride, pad, dilation):
@@ -244,7 +174,7 @@ class sphere_feature_extraction(nn.Module):
       )
 
     layers = []
-    if block == SphereBasicBlock or block == SphereBottleneck:
+    if block == SphereBasicBlock:
       print("add sphere block. num: {}, inplanes: {}, planes: {}".format(blocks, inplanes, planes))
       layers.append(block(height, width, sphereType, inplanes, planes, stride, downsample, pad, dilation))
       inplanes = planes * block.expansion

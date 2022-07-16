@@ -1,2 +1,2 @@
-from .mode_network import ModeDisparity
-from initModel import initModel, loadRegressionOnly
+from .mode_disparity import ModeDisparity
+from .initModel import initModelPara, loadStackHourglassOnly

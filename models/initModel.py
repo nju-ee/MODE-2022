@@ -6,7 +6,7 @@ from .basic import SphereConv
 
 
 # NOTE: Model Initialization methods
-def initModel(model, initType):
+def initModelPara(model, initType):
   if initType == None or initType == 'default':
     return
   for m in model.modules():
@@ -32,7 +32,7 @@ def initModel(model, initType):
         nn.init.constant_(m.bias, 0)
 
 
-def loadRegressionOnly(model, savedDictPath):
+def loadStackHourglassOnly(model, savedDictPath):
   pretrained_dict = torch.load(savedDictPath)['state_dict']
   currentDict = model.state_dict()
   pretrained_dict = {k: v for k, v in pretrained_dict.items() if ((k in currentDict) and ('feature_extraction' not in k) and ('forfilter1' not in k))}
@@ -40,18 +40,3 @@ def loadRegressionOnly(model, savedDictPath):
   print("load partial parameter: ")
   model.load_state_dict(currentDict)
   print("loading done!")
-
-
-def freezeSHG(model):
-  layerNamesParallel = [model.module.dres0, model.module.dres1, model.module.dres2, model.module.dres3, model.module.dres4, model.module.classif1, model.module.classif2, model.module.classif3]
-  for layer in layerNamesParallel:
-    for param in layer.parameters():
-      param.requires_grad = False
-
-
-def unfreezeSHG(model):
-  #layerNames = [model.dres0, model.dres1, model.dres2, model.dres3, model.dres4, model.classif1, model.classif2, model.classif3]
-  layerNamesParallel = [model.module.dres0, model.module.dres1, model.module.dres2, model.module.dres3, model.module.dres4, model.module.classif1, model.module.classif2, model.module.classif3]
-  for layer in layerNamesParallel:
-    for param in layer.parameters():
-      param.requires_grad = True
