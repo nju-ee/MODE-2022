@@ -32,7 +32,7 @@ Argument Definition
 parser = argparse.ArgumentParser(description='MODE Disparity estimation - training')
 
 # model
-parser.add_argument('--model_disp', default='ModeDisparity', help='select model')
+parser.add_argument('--model_disp', default='mode', help='select model')
 # data
 parser.add_argument("--dataset", default="deep360", type=str, help="dataset name")
 parser.add_argument("--dataset_root", default="../../datasets/MODE_Datasets/Deep360/", type=str, help="dataset root directory.")
@@ -44,21 +44,20 @@ parser.add_argument('--max_depth', default=1000, type=float, help="max valid dep
 parser.add_argument('--baseline', default=1, type=float, help="baseline of binocular spherical system")
 # hyper parameters
 parser.add_argument('--epochs', type=int, default=55, help='number of epochs to train')
-parser.add_argument('--start_decay', type=int, default=45, help='number of epoch for lr to start decay')
+parser.add_argument('--start_decay', type=int, default=45, help='number of epoch to decay the learning rate')
 parser.add_argument('--batch_size', type=int, default=4, help='number of batch to train')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate of disp estimation training')
 
 # training
-parser.add_argument('--resume', action='store_true', default=False, help='load checkpoint and resume learning')
-parser.add_argument('--checkpoint_disp', default=None, help='load checkpoint of disparity estimation path')
-parser.add_argument('--loadSHGonly', action='store_true', default=False, help='if set,load stack hour glass part from pretrained model, skip feature extraction part')
-parser.add_argument('--pretrained', default=None, help='load pretrained disp model path')
+parser.add_argument('--resume', action='store_true', default=False, help='resume learning')
+parser.add_argument('--checkpoint_disp', default=None, help='path to load checkpoint of disparity estimation model')
+parser.add_argument('--loadSHGonly', action='store_true', default=False, help='if set,only load stack hourglass part from pretrained model, skip feature extraction part')
+
 parser.add_argument('--tensorboard_path', default='./logs', help='tensorboard path')
 
 parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
-parser.add_argument('--printNet', action='store_true', default=False, help='print network details')
-parser.add_argument('--crop_disp', action='store_true', default=False, help='crop when train disp')
-parser.add_argument('--parallel', action='store_true', default=False, help='train model parallel')
+parser.add_argument('--crop_disp', action='store_true', default=False, help='if crop the input in training')
+parser.add_argument('--parallel', action='store_true', default=False, help='model parallel')
 parser.add_argument('--cudnn_deter', action='store_true', default=False, help='if True, set cudnn deterministic as True and benchmark as False. Otherwise the opposite')
 parser.add_argument('--seed', type=int, default=123, metavar='S', help='random seed (default: 123)')
 
@@ -280,7 +279,7 @@ start_epoch = 0
 # Load ckpt or init model
 if (model_disp is not None):
   initType = 'default'
-  initModel(model_disp, initType)
+  initModelPara(model_disp, initType)
   if (args.checkpoint_disp is not None) and (args.checkpoint_disp != 'None'):
     if args.resume:
       model_disp, start_epoch = loadCkpt(model_disp, args.checkpoint_disp)
