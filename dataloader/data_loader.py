@@ -13,10 +13,10 @@ def default_loader(path):
     return Image.open(path).convert('RGB')
 
 def disparity_loader(path):
-    return np.load(path).astype(np.float32)
+    return np.load(path)['arr_0'].astype(np.float32)
 
 def depth_loader(path):
-    depth = np.load(path).astype(np.float32)
+    depth = np.load(path)['arr_0'].astype(np.float32)
     return np.expand_dims(depth, axis=-1)
 
 def conf_loader(path):
