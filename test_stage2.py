@@ -28,7 +28,7 @@ parser.add_argument('--model', default='MODE_Fusion',
                     help='select model')
 parser.add_argument('--dbname', default= "Deep360",
                     help='dataset name')
-parser.add_argument('--soil', action='store_true', default=False,
+parser.add_argument('--soiled', action='store_true', default=False,
                     help='test fusion network on soiled data (only for Deep360)')
 parser.add_argument('--resize', action='store_true', default=False,
                     help='resize the input by downsampling to 1/2 of its original size')
@@ -54,7 +54,7 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 if args.dbname == 'Deep360':
-    test_depthes, test_confs, test_rgbs, test_gt = lt.listfile_stage2_test(args.datapath_input, args.datapath_gt, args.soil)
+    test_depthes, test_confs, test_rgbs, test_gt = lt.listfile_stage2_test(args.datapath_input, args.datapath_gt, args.soiled)
 
 if args.model == 'Baseline':
     model = Baseline(args.maxdepth)

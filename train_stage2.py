@@ -25,7 +25,7 @@ parser.add_argument('--model', default='MODE_Fusion',
                     help='select model')
 parser.add_argument('--dbname', default= "Deep360",
                     help='dataset name')
-parser.add_argument('--soil', action='store_true', default=False,
+parser.add_argument('--soiled', action='store_true', default=False,
                     help='train fusion network from soiled data (only for Deep360)')
 parser.add_argument('--resize', action='store_true', default=False,
                     help='resize the input by downsampling to 1/2 of its original size')
@@ -57,7 +57,7 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 if args.dbname == 'Deep360':
-    train_depthes, train_confs, train_rgbs, train_gt, val_depthes, val_confs, val_rgbs, val_gt = lt.listfile_stage2_train(args.datapath_input, args.datapath_dataset, args.soil)
+    train_depthes, train_confs, train_rgbs, train_gt, val_depthes, val_confs, val_rgbs, val_gt = lt.listfile_stage2_train(args.datapath_input, args.datapath_dataset, args.soiled)
 
 TrainImgLoader = torch.utils.data.DataLoader(
         DA.myDataLoaderStage2(train_depthes, train_confs, train_rgbs, train_gt, resize=args.resize, training=True), 
