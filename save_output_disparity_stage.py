@@ -15,7 +15,7 @@ import cv2
 parser = argparse.ArgumentParser(description='MODE - save disparity and confidence outputs')
 parser.add_argument('--max_disp', type=int, default=192, help='maxium disparity')
 parser.add_argument('--dbname', default='Deep360', help='dataset name')
-parser.add_argument('--datapath', default='../../datasets/MODE_Datasets/Deep360/', help='datapath')
+parser.add_argument('--datapath', default='../../datasets/Deep360/', help='datapath')
 parser.add_argument('--soiled', action='store_true', default=False, help='output the intermediate results of soiled dataset')
 parser.add_argument('--outpath', default='./outputs/Deep360PredDepth/', help='output path')
 parser.add_argument('--batch_size', type=int, default=6, help='batch size')
