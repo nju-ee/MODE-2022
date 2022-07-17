@@ -7,9 +7,6 @@ import math
 
 __imagenet_stats = {'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]}
 
-#__imagenet_stats = {'mean': [0.5, 0.5, 0.5],
-#                   'std': [0.5, 0.5, 0.5]}
-
 __imagenet_pca = {
     'eigval': torch.Tensor([0.2175,
                             0.0188,
@@ -27,51 +24,17 @@ __imagenet_pca = {
     ])
 }
 
-
-def scale_crop(input_size, scale_size=None, normalize=__imagenet_stats):
-  t_list = [
-      transforms.ToTensor(),
-      transforms.Normalize(**normalize),
-  ]
-  #if scale_size != input_size:
-  #t_list = [transforms.Scale((960,540))] + t_list
-
-  return transforms.Compose(t_list)
-
-
-def scale_random_crop(input_size, scale_size=None, normalize=__imagenet_stats):
-  t_list = [
-      transforms.RandomCrop(input_size),
-      transforms.ToTensor(),
-      transforms.Normalize(**normalize),
-  ]
-  if scale_size != input_size:
-    t_list = [transforms.Scale(scale_size)] + t_list
-
-  transforms.Compose(t_list)
-
-
-def pad_random_crop(input_size, scale_size=None, normalize=__imagenet_stats):
-  padding = int((scale_size - input_size) / 2)
-  return transforms.Compose([
-      transforms.RandomCrop(input_size,
-                            padding=padding),
-      transforms.RandomHorizontalFlip(),
-      transforms.ToTensor(),
-      transforms.Normalize(**normalize),
-  ])
+__deep360_stats = {'mean': [0], 'std': [1]}
 
 
 def inception_preproccess(input_size, normalize=__imagenet_stats):
   return transforms.Compose([transforms.RandomSizedCrop(input_size), transforms.RandomHorizontalFlip(), transforms.ToTensor(), transforms.Normalize(**normalize)])
 
 
-def inception_color_preproccess(input_size, normalize=__imagenet_stats):
+def inception_color_preproccess(normalize=__imagenet_stats):
   return transforms.Compose([
-      #transforms.RandomSizedCrop(input_size),
-      #transforms.RandomHorizontalFlip(),
       transforms.ToTensor(),
-      ColorJitter(
+      transforms.ColorJitter(
           brightness=0.4,
           contrast=0.4,
           saturation=0.4,
@@ -83,13 +46,33 @@ def inception_color_preproccess(input_size, normalize=__imagenet_stats):
   ])
 
 
-def get_transform(name='imagenet', input_size=None, scale_size=None, normalize=None, augment=True):
+def color_normalize(normalize=__imagenet_stats):
+  t_list = [
+      transforms.ToTensor(),
+      transforms.Normalize(**normalize),
+  ]
+  return transforms.Compose(t_list)
+
+
+def depth_normalize(normalize=__deep360_stats):
+  t_list = [
+      transforms.ToTensor(),
+      transforms.Normalize(**normalize),
+  ]
+  return transforms.Compose(t_list)
+
+
+def get_transform_stage1(name='imagenet', normalize=None, augment=True):
   normalize = __imagenet_stats
-  input_size = 256
   if augment:
-    return inception_color_preproccess(input_size, normalize=normalize)
+    return inception_color_preproccess(normalize=normalize)
   else:
-    return scale_crop(input_size=input_size, scale_size=scale_size, normalize=normalize)
+    return color_normalize(normalize=normalize)
+
+
+def get_transform_stage2(name='deep360', normalize=None, augment=False):
+  normalize = __deep360_stats
+  return depth_normalize(normalize=normalize)
 
 
 class Lighting(object):
@@ -110,95 +93,3 @@ class Lighting(object):
         .sum(1).squeeze()
 
     return img.add(rgb.view(3, 1, 1).expand_as(img))
-
-
-class Grayscale(object):
-  def __call__(self, img):
-    gs = img.clone()
-    gs[0].mul_(0.299).add_(0.587, gs[1]).add_(0.114, gs[2])
-    gs[1].copy_(gs[0])
-    gs[2].copy_(gs[0])
-    return gs
-
-
-class Saturation(object):
-  def __init__(self, var):
-    self.var = var
-
-  def __call__(self, img):
-    gs = Grayscale()(img)
-    alpha = random.uniform(0, self.var)
-    return img.lerp(gs, alpha)
-
-
-class Brightness(object):
-  def __init__(self, var):
-    self.var = var
-
-  def __call__(self, img):
-    gs = img.new().resize_as_(img).zero_()
-    alpha = random.uniform(0, self.var)
-    return img.lerp(gs, alpha)
-
-
-class Contrast(object):
-  def __init__(self, var):
-    self.var = var
-
-  def __call__(self, img):
-    gs = Grayscale()(img)
-    gs.fill_(gs.mean())
-    alpha = random.uniform(0, self.var)
-    return img.lerp(gs, alpha)
-
-
-class RandomOrder(object):
-  """ Composes several transforms together in random order.
-    """
-  def __init__(self, transforms):
-    self.transforms = transforms
-
-  def __call__(self, img):
-    if self.transforms is None:
-      return img
-    order = torch.randperm(len(self.transforms))
-    for i in order:
-      img = self.transforms[i](img)
-    return img
-
-
-class ColorJitter(RandomOrder):
-  def __init__(self, brightness=0.4, contrast=0.4, saturation=0.4):
-    self.transforms = []
-    if brightness != 0:
-      self.transforms.append(Brightness(brightness))
-    if contrast != 0:
-      self.transforms.append(Contrast(contrast))
-    if saturation != 0:
-      self.transforms.append(Saturation(saturation))
-
-
-def createAngleInfo(height, width, dir='X'):
-  assert dir in ['X', 'Y']
-  # Create Angle info ------------------------------------------------
-  # Angle info used in 360SDNet
-  if dir == 'Y':
-    # Y angle
-    angle_y = np.array([(i - 0.5) / height * 180 for i in range(height // 2, -height // 2, -1)])
-    angle_ys = np.tile(angle_y[:, np.newaxis], (width))
-    equi_info = angle_ys.astype(np.float32)
-    # equi_info = torch.from_numpy(equi_info.astype(np.float32)).cuda()
-  elif dir == 'X':
-    # X angle
-    angle_x = np.array([(i - 0.5) / width * 180 for i in range(width // 2, -width // 2, -1)])
-    angle_xs = np.tile(angle_x[:, np.newaxis], (height)).T
-    equi_info = angle_xs.astype(np.float32)
-  else:
-    equi_info = None
-    print('Error in Angle info Creation!')
-  if not equi_info is None:
-    equi_info = torch.from_numpy(equi_info).unsqueeze_(0)
-  return equi_info
-
-
-# -------------------------------------------------------------------
