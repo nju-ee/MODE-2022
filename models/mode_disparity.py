@@ -51,6 +51,7 @@ class hourglass(nn.Module):
 class ModeDisparity(nn.Module):
   def __init__(self, maxdisp, conv='Sphere', in_height=1024, in_width=512, sphereType='Cassini', out_conf=False):
     super(ModeDisparity, self).__init__()
+    print("MODE stereo matching network!")
     self.maxdisp = maxdisp
     self.out_conf = out_conf
     if conv == 'Regular':

@@ -95,8 +95,10 @@ def saveOutput(pred, gt, mask, rootDir, id, names=None, log=True, savewithGt=Tru
     maskSave = mask[i, ::].cpu()
     if savewithGt:
       saveimg = torch.cat([gtSave, div, predSave], dim=2).squeeze_(0).numpy()
+      maskSave = torch.cat([maskSave, div > 0, maskSave], dim=2).squeeze_(0).numpy()
     else:
       saveimg = predSave.squeeze_(0).numpy()
+      maskSave = maskSave.squeeze_(0).numpy()
     saveimg = (saveimg - np.min(saveimg)) / (np.max(saveimg) - np.min(saveimg)) * 255
 
     saveimg = saveimg.astype(np.uint8)
@@ -111,6 +113,8 @@ def saveOutput(pred, gt, mask, rootDir, id, names=None, log=True, savewithGt=Tru
         ep_name = re.findall(r'ep[0-9]_', oriName)[0]
         name = ep_name + name
     saveimg = cv2.applyColorMap(saveimg, cv2.COLORMAP_JET)
+    saveimg[:, w:w + 10, :] = 255
+    saveimg[~maskSave, :] = 0
     cv2.imwrite(os.path.join(rootDir, name + '_pred.png'), saveimg)
 
 
@@ -139,8 +143,8 @@ def testDisp(modelDisp, testDispDataLoader, modelNameDisp, numTestData):
       eval_metrics.append(evaluation.pixel_error_pct(5, output[mask], dispMap[mask]))
       eval_metrics.append(evaluation.D1(3, 0.05, output[mask], dispMap[mask]))
       if save_out:
-        if args.save_ori: saveOutputOriValue(output, dispMap, mask, args.save_output_path, counter, names=batchData['dispNames'])  # save npz
-        saveOutput(output, dispMap, mask, args.save_output_path, counter, names=batchData['dispNames'], log=True)
+        if args.save_ori: saveOutputOriValue(output.clone(), dispMap.clone(), mask, args.save_output_path, counter, names=batchData['dispNames'])  # save npz
+        saveOutput(output.clone(), dispMap.clone(), mask, args.save_output_path, counter, names=batchData['dispNames'], log=True)
       total_eval_metrics += eval_metrics
     mean_errors = total_eval_metrics / len(testDispDataLoader)
     mean_errors = ['{:^.4f}'.format(x) for x in mean_errors]
