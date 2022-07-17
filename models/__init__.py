@@ -1,3 +1,3 @@
 from .mode_disparity import ModeDisparity
 from .initModel import initModelPara, loadStackHourglassOnly
-from .fusion import *
+from .mode_fusion import Baseline, ModeFusion

@@ -23,7 +23,7 @@ import prettytable as pt
 
 from models import ModeDisparity
 from utils import evaluation, geometry
-from dataloader import listfile_disparity_test, Deep360DatasetDisparity
+from dataloader import list_deep360_disparity_test, Deep360DatasetDisparity
 
 parser = argparse.ArgumentParser(description='MODE Disparity estimation - testing')
 
@@ -169,7 +169,7 @@ def main():
 
   # data
   if args.dataset == 'Deep360':  # deep 360
-    test_left_img, test_right_img, test_left_disp = listfile_disparity_test(args.dataset_root, soiled=args.soiled)
+    test_left_img, test_right_img, test_left_disp = list_deep360_disparity_test(args.dataset_root, soiled=args.soiled)
     testDispData = Deep360DatasetDisparity(leftImgs=test_left_img, rightImgs=test_right_img, disps=test_left_disp)
     testDispDataLoader = torch.utils.data.DataLoader(testDispData, batch_size=args.batch_size, num_workers=args.batch_size, pin_memory=False, shuffle=False)
 

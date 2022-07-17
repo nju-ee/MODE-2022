@@ -9,7 +9,7 @@ import math
 from dataloader import listfile_disparity_test, listfile_disparity_train
 from dataloader import Deep360DatasetDisparity
 from models import ModeDisparity
-from utils.geometry import cassini2Cassini, depthViewTransWithConf
+from utils.geometry import rotateCassini, depthViewTransWithConf
 import cv2
 
 parser = argparse.ArgumentParser(description='MODE - save disparity and confidence outputs')
@@ -136,15 +136,15 @@ def disp2depth(disp, conf_map, cam_pair):
     return depth_l, conf_map
   elif cam_pair == '13':
     depth_1 = np.expand_dims(depth_l, axis=-1)
-    depth_2 = cassini2Cassini(depth_1, 0.5 * math.pi, 0, 0)
+    depth_2 = rotateCassini(depth_1, 0.5 * math.pi, 0, 0)
     conf_1 = np.expand_dims(conf_map, axis=-1)
-    conf_2 = cassini2Cassini(conf_1, 0.5 * math.pi, 0, 0)
+    conf_2 = rotateCassini(conf_1, 0.5 * math.pi, 0, 0)
     return depth_2[:, :, 0], conf_2[:, :, 0]
   elif cam_pair == '14':
     depth_1 = np.expand_dims(depth_l, axis=-1)
-    depth_2 = cassini2Cassini(depth_1, 0.25 * math.pi, 0, 0)
+    depth_2 = rotateCassini(depth_1, 0.25 * math.pi, 0, 0)
     conf_1 = np.expand_dims(conf_map, axis=-1)
-    conf_2 = cassini2Cassini(conf_1, 0.25 * math.pi, 0, 0)
+    conf_2 = rotateCassini(conf_1, 0.25 * math.pi, 0, 0)
     return depth_2[:, :, 0], conf_2[:, :, 0]
   elif cam_pair == '23':
     depth_2, conf_2 = depthViewTransWithConf(depth_l, conf_map, 0, -math.sqrt(2) / 2, -math.sqrt(2) / 2, 0.75 * math.pi, 0, 0)

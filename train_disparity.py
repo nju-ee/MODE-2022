@@ -24,7 +24,7 @@ from models import ModeDisparity
 from models import initModelPara, loadStackHourglassOnly
 
 from utils import evaluation
-from dataloader import listfile_disparity_train, Deep360DatasetDisparity
+from dataloader import list_deep360_disparity_train, Deep360DatasetDisparity
 '''
 Argument Definition
 '''
@@ -251,7 +251,7 @@ writer = SummaryWriter(writerPath)
 # import dataloader ------------------------------
 print("Preparing data. Dataset: <{}>".format(args.dataset))
 if args.dataset == 'Deep360':
-  train_left_img, train_right_img, train_left_disp, val_left_img, val_right_img, val_left_disp = listfile_disparity_train(args.dataset_root, soiled=args.soiled)
+  train_left_img, train_right_img, train_left_disp, val_left_img, val_right_img, val_left_disp = list_deep360_disparity_train(args.dataset_root, soiled=args.soiled)
   trainDispData = Deep360DatasetDisparity(train_left_img, train_right_img, train_left_disp, shape=(args.height, args.width))
   valDispData = Deep360DatasetDisparity(val_left_img, val_right_img, val_left_disp)
   print("Num of training data:{}. Num of validation data:{}".format(len(trainDispData), len(valDispData)))
