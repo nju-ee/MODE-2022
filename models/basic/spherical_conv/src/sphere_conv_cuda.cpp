@@ -88,7 +88,7 @@ void shape_check(at::Tensor input, at::Tensor position, at::Tensor * gradOutput,
     (inputWidth + 2 * padW - (dilationW * (kW - 1) + 1)) / dW + 1;
 
   // no need to check
-  //TORCH_CHECK(nInputPlane % deformable_group == 0, "input channels must divide deformable group size");
+  // TORCH_CHECK(nInputPlane % deformable_group == 0, "input channels must divide deformable group size");
 
   if (outputWidth < 1 || outputHeight < 1)
     AT_ERROR(
@@ -210,7 +210,6 @@ void sphere_conv_forward_cuda(at::Tensor input, at::Tensor weight, at::Tensor bi
 }
 
 // backward function
-//TODO: add grad_input and bias
 void sphere_conv_backward_cuda(
   at::Tensor input, at::Tensor weight, at::Tensor bias, at::Tensor ones,
   at::Tensor position, at::Tensor columns,
