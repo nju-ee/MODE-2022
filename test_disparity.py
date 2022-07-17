@@ -35,7 +35,6 @@ parser.add_argument('--height', default=1024, type=int, help="height of omnidire
 # stereo
 parser.add_argument('--max_disp', type=int, default=192, help='maxium disparity')
 parser.add_argument('--max_depth', default=1000, type=float, help="max valid depth")
-parser.add_argument('--baseline', default=1, type=float, help="baseline of binocular spherical system")
 # hyper parameters
 
 parser.add_argument('--batch_size', type=int, default=1, help='number of batch to train')

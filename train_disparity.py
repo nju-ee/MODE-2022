@@ -41,7 +41,6 @@ parser.add_argument('--height', default=1024, type=int, help="height of omnidire
 # stereo
 parser.add_argument('--max_disp', type=int, default=192, help='maxium disparity')
 parser.add_argument('--max_depth', default=1000, type=float, help="max valid depth")
-parser.add_argument('--baseline', default=1, type=float, help="baseline of binocular spherical system")
 # hyper parameters
 parser.add_argument('--epochs', type=int, default=55, help='number of epochs to train')
 parser.add_argument('--start_decay', type=int, default=45, help='number of epoch to decay the learning rate')
@@ -53,18 +52,17 @@ parser.add_argument('--resume', action='store_true', default=False, help='resume
 parser.add_argument('--checkpoint_disp', default=None, help='path to load checkpoint of disparity estimation model')
 parser.add_argument('--loadSHGonly', action='store_true', default=False, help='if set,only load stack hourglass part from pretrained model, skip feature extraction part')
 
-parser.add_argument('--tensorboard_path', default='./logs', help='tensorboard path')
-
-parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
-parser.add_argument('--crop_disp', action='store_true', default=False, help='if crop the input in training')
 parser.add_argument('--parallel', action='store_true', default=False, help='model parallel')
-parser.add_argument('--cudnn_deter', action='store_true', default=False, help='if True, set cudnn deterministic as True and benchmark as False. Otherwise the opposite')
-parser.add_argument('--seed', type=int, default=123, metavar='S', help='random seed (default: 123)')
 
 parser.add_argument('--soiled', action='store_true', default=False, help='test soiled image')
 
+parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
+parser.add_argument('--crop_disp', action='store_true', default=False, help='if crop the input in training')
+parser.add_argument('--cudnn_deter', action='store_true', default=False, help='if True, set cudnn deterministic as True and benchmark as False. Otherwise the opposite')
+parser.add_argument('--seed', type=int, default=123, metavar='S', help='random seed (default: 123)')
+
 # saving
-parser.add_argument('--save_suffix_disp', type=str, default=None, help='save checkpoint name')
+parser.add_argument('--tensorboard_path', default='./logs', help='tensorboard path')
 parser.add_argument('--save_checkpoint_path', default='./checkpoints', help='save checkpoint path')
 parser.add_argument('--save_image_path', type=str, default='./outputs', help='save images path')
 
@@ -92,14 +90,10 @@ Functions
 
 
 # Save / Load Checkpoints Functions
-def saveCkpt(epoch, avgLoss, model, stage, model_name):
-  savefilename = args.save_checkpoint_path + '/ckpt_' + str(stage) + '_' + str(model_name)
-  if stage == 'disp' and (args.save_suffix_disp is not None):
-    savefilename = savefilename + '_' + args.save_suffix_disp
-  elif stage == 'fusion' and (args.save_suffix_fusion is not None):
-    savefilename = savefilename + '_' + args.save_suffix_fusion
-  savefilename = savefilename + '_' + str(epoch) + '.tar'
+def saveCkpt(epoch, avgLoss, model, model_name):
+  savefilename = args.save_checkpoint_path + '/ckpt_' + str(model_name) + '_' + str(epoch) + '.tar'
   torch.save({'epoch': epoch, 'state_dict': model.state_dict(), 'train_loss': avgLoss}, savefilename)
+  print("saving checkpoint : {}".format(savefilename))
 
 
 def loadCkpt(model, checkpoint):
@@ -186,14 +180,13 @@ def valDisp(imgL, imgR, disp_true, mask, model_disp):
 
 
 def train(trainDispDataLoader, valDispDataLoader, model_disp, optimizer):
-  print("Training Start!!!")
   global_step = 0
   global_val = 0
   for epoch in range(start_epoch + 1, args.epochs + 1):
     startTime = time.time()
     total_train_loss = 0
     counter = 0
-    adjust_learning_rate(optimizer, epoch, args.learning_rate_disp)
+    adjust_learning_rate(optimizer, epoch, args.learning_rate)
     print("Epoch: {}, Current Stage: Disp, Current Learning Rate: {}".format(epoch, optimizer.state_dict()['param_groups'][0]['lr']))
     # -------------------------------
     # Train ----------------------------------
@@ -214,7 +207,7 @@ def train(trainDispDataLoader, valDispDataLoader, model_disp, optimizer):
     # ----------------------------------------------------
 
     # Save Checkpoint ------------------------------------
-    saveCkpt(epoch, total_train_loss / len(trainDispDataLoader), model_disp, stage='disp', model_name=args.model_disp)
+    saveCkpt(epoch, total_train_loss / len(trainDispDataLoader), model_disp, model_name=args.model_disp)
     # --------------------------------------------------------
 
     # Valid --------------------------------------------------
@@ -246,7 +239,6 @@ def train(trainDispDataLoader, valDispDataLoader, model_disp, optimizer):
 """
 Main Processing Start From Here
 """
-print("basic settings")
 # tensorboard Setting -----------------------
 curDateTime = datetime.now().strftime("%Y%m%d_%H%M%S")
 writerPath = os.path.join(args.tensorboard_path, curDateTime)
@@ -260,8 +252,9 @@ writer = SummaryWriter(writerPath)
 print("Preparing data. Dataset: <{}>".format(args.dataset))
 if args.dataset == 'deep360':
   train_left_img, train_right_img, train_left_disp, val_left_img, val_right_img, val_left_disp = listfile_disparity_train(args.dataset_root, soiled=args.soiled)
-  trainDispData = Deep360DatasetDisparity()
-  valDispData = Deep360DatasetDisparity()
+  trainDispData = Deep360DatasetDisparity(train_left_img, train_right_img, train_left_disp, shape=(args.height, args.width))
+  valDispData = Deep360DatasetDisparity(val_left_img, val_right_img, val_left_disp)
+  print("Num of training data:{}. Num of validation data:{}".format(len(trainDispData), len(valDispData)))
   trainDispDataLoader = torch.utils.data.DataLoader(trainDispData, batch_size=args.batch_size, num_workers=4, pin_memory=False, shuffle=True)
   valDispDataLoader = torch.utils.data.DataLoader(valDispData, batch_size=args.batch_size, num_workers=4, pin_memory=False, shuffle=False)
 # -------------------------------------------------
@@ -298,7 +291,7 @@ if (model_disp is not None):
     print("initialize model <{}> as type <{}>".format(args.model_disp, initType))
 
 # Optimizer ----------
-optimizer_disp = optim.Adam(model_disp.parameters(), lr=args.learning_rate_disp, betas=(0.9, 0.999))
+optimizer_disp = optim.Adam(model_disp.parameters(), lr=args.learning_rate, betas=(0.9, 0.999))
 
 # ---------------------
 
