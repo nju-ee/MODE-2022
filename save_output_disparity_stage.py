@@ -12,12 +12,12 @@ from models import ModeDisparity
 from utils.geometry import cassini2Cassini, depthViewTransWithConf
 import cv2
 
-parser = argparse.ArgumentParser(description='MODE-Net-stage1')
+parser = argparse.ArgumentParser(description='MODE - save disparity and confidence outputs')
 parser.add_argument('--max_disp', type=int, default=192, help='maxium disparity')
-parser.add_argument('--dbname', default=None, help='dataset name')
+parser.add_argument('--dbname', default='Deep360', help='dataset name')
 parser.add_argument('--datapath', default='../../datasets/MODE_Datasets/Deep360/', help='datapath')
 parser.add_argument('--soiled', action='store_true', default=False, help='output the intermediate results of soiled dataset')
-parser.add_argument('--outpath', default='../Deep360PredDepth/', help='output path')
+parser.add_argument('--outpath', default='./outputs/Deep360PredDepth/', help='output path')
 parser.add_argument('--batch_size', type=int, default=6, help='batch size')
 parser.add_argument('--checkpoint_disp', default=None, help='load model')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='enables CUDA training')
@@ -32,6 +32,7 @@ if args.cuda:
 if args.dbname == 'Deep360':
   train_left_img, train_right_img, train_left_disp, val_left_img, val_right_img, val_left_disp = listfile_disparity_train(args.datapath, args.soiled)
   test_left_img, test_right_img, test_left_disp = listfile_disparity_test(args.datapath, args.soiled)
+  total_num = (len(train_left_img) + len(val_left_img) + len(test_left_img))
   # list all files---------------------------------
   # left
   all_left = train_left_img
@@ -45,7 +46,7 @@ if args.dbname == 'Deep360':
   all_disp = train_left_disp
   all_disp.extend(val_left_disp)
   all_disp.extend(test_left_disp)
-  assert (len(all_left) == len(all_right) == len(all_right) == (len(train_left_img) + len(val_left_img) + len(test_left_img)))
+  assert (len(all_left) == len(all_right) == len(all_disp) == total_num)
   #------------------------------------------------
 
 AllImgLoader = torch.utils.data.DataLoader(Deep360DatasetDisparity(all_left, all_right, all_disp), batch_size=args.batch_size, shuffle=False, num_workers=args.batch_size, drop_last=False)
@@ -164,7 +165,7 @@ def main():
   device = torch.device("cuda" if args.cuda else "cpu")
   if args.dbname == 'Deep360':
     #------------- Check the output directories -------
-    ep_list = os.listdir(args.datapath)  #ep子文件夹名列表
+    ep_list = ["ep%d_500frames" % i for i in range(1, 7)]
     ep_list.sort()
     outdir_name = "disp_pred2depth" if not args.soiled else "disp_pred2depth_soiled"
     outdir_conf_name = "conf_map" if not args.soiled else "conf_map_soiled"
@@ -191,10 +192,10 @@ def main():
       # np.save(outpath_disp + "disp_pred.npy", pred_disp_batch[i])
       #------------- do disp2depth ------------------
       depth_at_1, conf_at_1 = disp2depth(pred_disp_batch[i], conf_map_batch[i], dispName[i][-11:-9])
-      outpath_depth = outpath.replace("rgb", "disp_pred2depth")
+      outpath_depth = outpath.replace("disp", "disp_pred2depth")
       np.savez(outpath_depth + "disp_pred2depth.npz", depth_at_1)  #save npz files
       #------------- save conf_map ------------------
-      outpath_conf = outpath.replace("rgb", "conf_map")
+      outpath_conf = outpath.replace("disp", "conf_map")
       cv2.imwrite(outpath_conf + "conf_map.png", conf_at_1 * 255)
 
 
