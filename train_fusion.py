@@ -18,7 +18,7 @@ from utils import evaluation
 import prettytable as pt
 from torch.utils.tensorboard import SummaryWriter
 
-parser = argparse.ArgumentParser(description='MODE_Fusion_train')
+parser = argparse.ArgumentParser(description='MODE Fusion training')
 parser.add_argument('--maxdepth', type=float, default=1000.0, help='maximum depth in meters')
 parser.add_argument('--model', default='ModeFusion', help='select model')
 parser.add_argument('--dbname', default="Deep360", help='dataset name')
@@ -28,10 +28,10 @@ parser.add_argument('--datapath-input', default='./outputs/Deep360PredDepth/', h
 parser.add_argument('--datapath-dataset', default='./datasets/Deep360/', help='the path of the dataset')
 parser.add_argument('--epochs', type=int, default=150, help='the number of epochs for training')
 parser.add_argument('--epoch-start', type=int, default=0, help='change this if the training was broken and you want to continue from the breakpoint')
-parser.add_argument('--batch-size', type=int, default=16, help='batch size')
+parser.add_argument('--batch-size', type=int, default=4, help='batch size')
 parser.add_argument('--lr', type=float, default=0.0001, help='initial learning rate')
 parser.add_argument('--loadmodel', default=None, help='load model path')
-parser.add_argument('--savemodel', default='./checkpoint/fusion/', help='save model path')
+parser.add_argument('--savemodel', default='./checkpoints/fusion/', help='save model path')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
 args = parser.parse_args()
@@ -105,7 +105,7 @@ def train(depthes, confs, rgbs, gt):
 
   if args.model == 'Baseline':
     output = model(depthes)
-  elif args.model == 'MODE_Fusion':
+  elif args.model == 'ModeFusion':
     output = model(depthes, confs, rgbs)
   output = torch.squeeze(output, 1)
 
@@ -132,7 +132,7 @@ def val(depthes, confs, rgbs, gt):
   with torch.no_grad():
     if args.model == 'Baseline':
       output = model(depthes)
-    elif args.model == 'MODE_Fusion':
+    elif args.model == 'ModeFusion':
       output = model(depthes, confs, rgbs)
     pred = torch.squeeze(output, 1)
 
@@ -170,7 +170,7 @@ def main():
     #--- TRAINING ---#
     for batch_idx, (_, depthes, confs, rgbs, gt) in enumerate(TrainImgLoader):
       loss = train(depthes, confs, rgbs, gt)
-      print("\rStage2 Epoch" + str(epoch + args.epoch_start) + ": {:.2f}%".format(100 * (batch_idx + 1) / len(TrainImgLoader)), end='')
+      print("\rFusion Stage Epoch" + str(epoch + args.epoch_start) + ": {:.2f}%".format(100 * (batch_idx + 1) / len(TrainImgLoader)), end='')
       total_train_loss += loss
     writer.add_scalar('Training Loss', total_train_loss / len(TrainImgLoader), epoch + args.epoch_start)
 

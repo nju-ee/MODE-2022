@@ -29,10 +29,10 @@ from dataloader import list_deep360_disparity_train, Deep360DatasetDisparity
 Argument Definition
 '''
 
-parser = argparse.ArgumentParser(description='MODE Disparity estimation - training')
+parser = argparse.ArgumentParser(description='MODE Disparity estimation training')
 
 # model
-parser.add_argument('--model_disp', default='mode', help='select model')
+parser.add_argument('--model_disp', default='ModeDisparity', help='select model')
 # data
 parser.add_argument("--dataset", default="Deep360", type=str, help="dataset name")
 parser.add_argument("--dataset_root", default="../../datasets/MODE_Datasets/Deep360/", type=str, help="dataset root directory.")
@@ -62,9 +62,7 @@ parser.add_argument('--cudnn_deter', action='store_true', default=False, help='i
 parser.add_argument('--seed', type=int, default=123, metavar='S', help='random seed (default: 123)')
 
 # saving
-parser.add_argument('--tensorboard_path', default='./logs', help='tensorboard path')
 parser.add_argument('--save_checkpoint_path', default='./checkpoints/disp/', help='save checkpoint path')
-parser.add_argument('--save_image_path', type=str, default='./outputs', help='save images path')
 
 args = parser.parse_args()
 
@@ -90,8 +88,8 @@ Functions
 
 
 # Save / Load Checkpoints Functions
-def saveCkpt(epoch, avgLoss, model, model_name):
-  savefilename = args.save_checkpoint_path + '/ckpt_disp_' + str(model_name) + '_' + args.dataset + '_' + str(epoch) + '.tar'
+def saveCkpt(epoch, avgLoss, model, model_name, save_root):
+  savefilename = save_root + '/ckpt_disp_' + str(model_name) + '_' + args.dataset + '_' + str(epoch) + '.tar'
   torch.save({'epoch': epoch, 'state_dict': model.state_dict(), 'train_loss': avgLoss}, savefilename)
   print("saving checkpoint : {}".format(savefilename))
 
@@ -207,7 +205,7 @@ def train(trainDispDataLoader, valDispDataLoader, model_disp, optimizer):
     # ----------------------------------------------------
 
     # Save Checkpoint ------------------------------------
-    saveCkpt(epoch, total_train_loss / len(trainDispDataLoader), model_disp, model_name=args.model_disp)
+    saveCkpt(epoch, total_train_loss / len(trainDispDataLoader), model_disp, model_name=args.model_disp, save_root=ckptPath)
     # --------------------------------------------------------
 
     # Valid --------------------------------------------------
@@ -240,12 +238,13 @@ def train(trainDispDataLoader, valDispDataLoader, model_disp, optimizer):
 Main Processing Start From Here
 """
 # tensorboard Setting -----------------------
-curDateTime = datetime.now().strftime("%Y%m%d_%H%M%S")
-writerPath = os.path.join(args.tensorboard_path, curDateTime)
-imagePath = os.path.join(args.save_image_path, curDateTime)
+savePathRoot = os.path.join(args.save_checkpoint_path, args.model_disp, args.dataset)
+writerPath = os.path.join(savePathRoot, 'logs')
+imagePath = os.path.join(savePathRoot, 'outputs')
+ckptPath = savePathRoot
 os.makedirs(writerPath, exist_ok=True)  # log
 os.makedirs(imagePath, exist_ok=True)  # image sample
-os.makedirs(args.save_checkpoint_path, exist_ok=True)  # checkpoint
+os.makedirs(ckptPath, exist_ok=True)  # checkpoint
 writer = SummaryWriter(writerPath)
 # -------------------------------------------------
 # import dataloader ------------------------------

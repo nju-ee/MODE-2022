@@ -24,8 +24,9 @@ from models import ModeDisparity
 from utils import evaluation, geometry
 from dataloader import list_deep360_disparity_test, Deep360DatasetDisparity
 
-parser = argparse.ArgumentParser(description='MODE Disparity estimation - testing')
+parser = argparse.ArgumentParser(description='MODE Disparity estimation testing')
 
+parser.add_argument('--model_disp', default='ModeDisparity', help='select model')
 parser.add_argument("--dataset", default="Deep360", type=str, help="dataset name")
 
 parser.add_argument("--dataset_root", default="../../datasets/MODE_Datasets/Deep360/", type=str, help="dataset root directory.")

@@ -21,7 +21,7 @@ from models import Baseline, ModeFusion
 from utils import evaluation
 import prettytable as pt
 
-parser = argparse.ArgumentParser(description='MODE_Fusion_test')
+parser = argparse.ArgumentParser(description='MODE Fusion testing')
 parser.add_argument('--maxdepth', type=float, default=1000.0, help='maximum depth in meters')
 parser.add_argument('--model', default='ModeFusion', help='select model')
 parser.add_argument('--dbname', default="Deep360", help='dataset name')
@@ -30,7 +30,7 @@ parser.add_argument('--resize', action='store_true', default=False, help='resize
 parser.add_argument('--datapath-input', default='./outputs/Deep360PredDepth/', help='the path of the input of stage2, which is just the output of stage1')
 parser.add_argument('--datapath-dataset', default='./datasets/Deep360/', help='the path of the dataset')
 parser.add_argument('--outpath', default='./MODE_Fusion_output/', help='the output path for fusion results')
-parser.add_argument('--batch-size', type=int, default=8, help='batch size')
+parser.add_argument('--batch-size', type=int, default=1, help='batch size')
 parser.add_argument('--loadmodel', default=None, help='load model path')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA')
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
@@ -42,7 +42,7 @@ if args.cuda:
   torch.cuda.manual_seed(args.seed)
 
 if args.dbname == 'Deep360':
-  test_depthes, test_confs, test_rgbs, test_gt = lt.list_deep360_fusion_test(args.datapath_input, args.datapath_gt, args.soiled)
+  test_depthes, test_confs, test_rgbs, test_gt = lt.list_deep360_fusion_test(args.datapath_input, args.datapath_dataset, args.soiled)
 
 if args.model == 'Baseline':
   model = Baseline(args.maxdepth)
@@ -76,7 +76,7 @@ def test(depthes, confs, rgbs, gt):
   with torch.no_grad():
     if args.model == 'Baseline':
       output = model(depthes)
-    elif args.model == 'MODE_Fusion':
+    elif args.model == 'ModeFusion':
       output = model(depthes, confs, rgbs)
     if args.resize:
       output = F.interpolate(output, scale_factor=[2, 2], mode='bicubic', align_corners=True)
