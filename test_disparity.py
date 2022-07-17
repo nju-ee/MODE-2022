@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(description='MODE Disparity estimation testing'
 parser.add_argument('--model_disp', default='ModeDisparity', help='select model')
 parser.add_argument("--dataset", default="Deep360", type=str, help="dataset name")
 
-parser.add_argument("--dataset_root", default="../../datasets/MODE_Datasets/Deep360/", type=str, help="dataset root directory.")
+parser.add_argument("--dataset_root", default="../../datasets/Deep360/", type=str, help="dataset root directory.")
 parser.add_argument('--width', default=512, type=int, help="width of omnidirectional images in Cassini domain")
 parser.add_argument('--height', default=1024, type=int, help="height of omnidirectional images in Cassini domain")
 # stereo
