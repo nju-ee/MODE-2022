@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import math
-from dataloader import listfile_disparity_test, listfile_disparity_train
+from dataloader import list_deep360_disparity_train, list_deep360_disparity_test
 from dataloader import Deep360DatasetDisparity
 from models import ModeDisparity
 from utils.geometry import rotateCassini, depthViewTransWithConf
@@ -30,8 +30,8 @@ if args.cuda:
   torch.cuda.manual_seed(args.seed)
 
 if args.dbname == 'Deep360':
-  train_left_img, train_right_img, train_left_disp, val_left_img, val_right_img, val_left_disp = listfile_disparity_train(args.datapath, args.soiled)
-  test_left_img, test_right_img, test_left_disp = listfile_disparity_test(args.datapath, args.soiled)
+  train_left_img, train_right_img, train_left_disp, val_left_img, val_right_img, val_left_disp = list_deep360_disparity_train(args.datapath, args.soiled)
+  test_left_img, test_right_img, test_left_disp = list_deep360_disparity_test(args.datapath, args.soiled)
   total_num = (len(train_left_img) + len(val_left_img) + len(test_left_img))
   # list all files---------------------------------
   # left
@@ -192,10 +192,10 @@ def main():
       # np.save(outpath_disp + "disp_pred.npy", pred_disp_batch[i])
       #------------- do disp2depth ------------------
       depth_at_1, conf_at_1 = disp2depth(pred_disp_batch[i], conf_map_batch[i], dispName[i][-11:-9])
-      outpath_depth = outpath.replace("disp", "disp_pred2depth")
+      outpath_depth = outpath.replace("disp", outdir_name)
       np.savez(outpath_depth + "disp_pred2depth.npz", depth_at_1)  #save npz files
       #------------- save conf_map ------------------
-      outpath_conf = outpath.replace("disp", "conf_map")
+      outpath_conf = outpath.replace("disp", outdir_conf_name)
       cv2.imwrite(outpath_conf + "conf_map.png", conf_at_1 * 255)
 
 
