@@ -34,7 +34,7 @@ parser = argparse.ArgumentParser(description='MODE Disparity estimation - traini
 # model
 parser.add_argument('--model_disp', default='mode', help='select model')
 # data
-parser.add_argument("--dataset", default="deep360", type=str, help="dataset name")
+parser.add_argument("--dataset", default="Deep360", type=str, help="dataset name")
 parser.add_argument("--dataset_root", default="../../datasets/MODE_Datasets/Deep360/", type=str, help="dataset root directory.")
 parser.add_argument('--width', default=512, type=int, help="width of omnidirectional images in Cassini domain")
 parser.add_argument('--height', default=1024, type=int, help="height of omnidirectional images in Cassini domain")
@@ -250,7 +250,7 @@ writer = SummaryWriter(writerPath)
 # -------------------------------------------------
 # import dataloader ------------------------------
 print("Preparing data. Dataset: <{}>".format(args.dataset))
-if args.dataset == 'deep360':
+if args.dataset == 'Deep360':
   train_left_img, train_right_img, train_left_disp, val_left_img, val_right_img, val_left_disp = listfile_disparity_train(args.dataset_root, soiled=args.soiled)
   trainDispData = Deep360DatasetDisparity(train_left_img, train_right_img, train_left_disp, shape=(args.height, args.width))
   valDispData = Deep360DatasetDisparity(val_left_img, val_right_img, val_left_disp)

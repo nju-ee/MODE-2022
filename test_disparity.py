@@ -27,7 +27,7 @@ from dataloader import listfile_disparity_test, Deep360DatasetDisparity
 
 parser = argparse.ArgumentParser(description='MODE Disparity estimation - testing')
 
-parser.add_argument("--dataset", default="deep360", type=str, help="dataset name")
+parser.add_argument("--dataset", default="Deep360", type=str, help="dataset name")
 
 parser.add_argument("--dataset_root", default="../../datasets/MODE_Datasets/Deep360/", type=str, help="dataset root directory.")
 parser.add_argument('--width', default=512, type=int, help="width of omnidirectional images in Cassini domain")
@@ -168,7 +168,7 @@ def main():
     raise ValueError("disp model checkpoint is not defined")
 
   # data
-  if args.dataset == 'deep360':  # deep 360
+  if args.dataset == 'Deep360':  # deep 360
     test_left_img, test_right_img, test_left_disp = listfile_disparity_test(args.dataset_root, soiled=args.soiled)
     testDispData = Deep360DatasetDisparity(leftImgs=test_left_img, rightImgs=test_right_img, disps=test_left_disp)
     testDispDataLoader = torch.utils.data.DataLoader(testDispData, batch_size=args.batch_size, num_workers=args.batch_size, pin_memory=False, shuffle=False)
