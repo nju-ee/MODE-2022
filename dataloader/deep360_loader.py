@@ -74,7 +74,7 @@ class Deep360DatasetDisparity(Dataset):
     # Member variable assignment
     self.crop = crop
     self.height, self.width = shape
-    self.processed = preprocess.get_transform(augment=False)  # transform of rgb images
+    self.processed = preprocess.get_transform_stage1(augment=False)  # transform of rgb images
     self.leftImgs = leftImgs
     self.rightImgs = rightImgs
     self.disps = disps
