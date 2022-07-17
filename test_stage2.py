@@ -131,7 +131,6 @@ def main():
         print("\rStage2 Test: {:.2f}%".format(100 *  (batch_idx+1)/ len(TestImgLoader)), end='')
 
         eval_metrics, depth_pred_batch, gt_batch = test(depthes, confs, rgbs, gt)
-        eval_metrics = eval_metrics * gt.shape[0]
         total_eval_metrics += eval_metrics
 
         for i in range(depth_pred_batch.shape[0]):
@@ -159,7 +158,7 @@ def main():
             depth_pred = cv2.applyColorMap(depth_pred, cv2.COLORMAP_JET)
             cv2.imwrite(depth_pred_path+'/'+name+"_pred.png", depth_pred)
 
-    eval_metrics = total_eval_metrics / len(test_gt)
+    eval_metrics = total_eval_metrics / len(TestImgLoader)
     tb = pt.PrettyTable()
     tb.field_names = ["MAE", "RMSE", "AbsRel", "SqRel", "SILog", "δ1 (%)", "δ2 (%)", "δ3 (%)"]
     tb.add_row(list(eval_metrics))

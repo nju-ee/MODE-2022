@@ -190,10 +190,9 @@ def main():
         for batch_idx, (_, depthes, confs, rgbs, gt) in enumerate(ValImgLoader):
             print("\rStage2 Epoch"+str(epoch+args.epoch_start)+": {:.2f}%".format(100 *  (batch_idx+1)/ len(ValImgLoader)), end='')
             eval_metrics = val(depthes, confs, rgbs, gt)
-            eval_metrics = eval_metrics * gt.shape[0]
             total_eval_metrics += eval_metrics
 
-        eval_metrics = total_eval_metrics / len(val_gt)
+        eval_metrics = total_eval_metrics / len(ValImgLoader)
         tb = pt.PrettyTable()
         tb.field_names = ["MAE", "RMSE", "AbsRel", "SqRel", "SILog", "δ1 (%)", "δ2 (%)", "δ3 (%)"]
         tb.add_row(list(eval_metrics))
