@@ -38,7 +38,7 @@ parser.add_argument('--max_depth', default=1000, type=float, help="max valid dep
 parser.add_argument('--baseline', default=1, type=float, help="baseline of binocular spherical system")
 # hyper parameters
 
-parser.add_argument('--batch_size', type=int, default=4, help='number of batch to train')
+parser.add_argument('--batch_size', type=int, default=1, help='number of batch to train')
 
 parser.add_argument('--checkpoint_disp', default=None, help='load checkpoint of disparity estimation path')
 
@@ -139,12 +139,11 @@ def testDisp(modelDisp, testDispDataLoader, modelNameDisp, numTestData):
       eval_metrics.append(evaluation.pixel_error_pct(5, output[mask], dispMap[mask]))
       eval_metrics.append(evaluation.D1(3, 0.05, output[mask], dispMap[mask]))
       if save_out:
-        if args.save_ori: saveOutputOriValue(output, dispMap, mask, args.save_output_path, counter, names=batchData['dispNames'])  # save npy
+        if args.save_ori: saveOutputOriValue(output, dispMap, mask, args.save_output_path, counter, names=batchData['dispNames'])  # save npz
         saveOutput(output, dispMap, mask, args.save_output_path, counter, names=batchData['dispNames'], log=True)
-      eval_metrics = [x * b for x in eval_metrics]
       total_eval_metrics += eval_metrics
-    mean_errors = total_eval_metrics / numTestData
-    mean_errors = [round(x, 4) for x in mean_errors]
+    mean_errors = total_eval_metrics / len(testDispDataLoader)
+    mean_errors = ['{:^.4f}'.format(x) for x in mean_errors]
   tb = pt.PrettyTable()
   tb.field_names = test_metrics
   tb.add_row(list(mean_errors))
