@@ -24,7 +24,7 @@ parser.add_argument('--model', default='ModeFusion', help='select model')
 parser.add_argument('--dbname', default="Deep360", help='dataset name')
 parser.add_argument('--soiled', action='store_true', default=False, help='train fusion network from soiled data (only for Deep360)')
 parser.add_argument('--resize', action='store_true', default=False, help='resize the input by downsampling to 1/2 of its original size')
-parser.add_argument('--datapath-input', default='./MODE_Disparity_output/', help='the path of the input of stage2, which is just the output of stage1')
+parser.add_argument('--datapath-input', default='./outputs/Deep360PredDepth', help='the path of the input of stage2, which is just the output of stage1')
 parser.add_argument('--datapath-dataset', default='./datasets/Deep360/', help='the path of the dataset')
 parser.add_argument('--epochs', type=int, default=150, help='the number of epochs for training')
 parser.add_argument('--epoch-start', type=int, default=0, help='change this if the training was broken and you want to continue from the breakpoint')
@@ -175,7 +175,7 @@ def main():
     writer.add_scalar('Training Loss', total_train_loss / len(TrainImgLoader), epoch + args.epoch_start)
 
     #--- SAVING ---#
-    savefilename = os.path.join(args.savemodel, args.model, args.dbname, 'ckpt_stage2_epoch%d.tar' % (epoch + args.epoch_start))
+    savefilename = os.path.join(args.savemodel, args.model, args.dbname, 'ckpt_fusion_epoch%d.tar' % (epoch + args.epoch_start))
     torch.save({'state_dict': model.state_dict()}, savefilename)
 
     #--- VALIDATION ---#

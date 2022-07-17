@@ -63,7 +63,7 @@ parser.add_argument('--seed', type=int, default=123, metavar='S', help='random s
 
 # saving
 parser.add_argument('--tensorboard_path', default='./logs', help='tensorboard path')
-parser.add_argument('--save_checkpoint_path', default='./checkpoints', help='save checkpoint path')
+parser.add_argument('--save_checkpoint_path', default='./checkpoints/disp/', help='save checkpoint path')
 parser.add_argument('--save_image_path', type=str, default='./outputs', help='save images path')
 
 args = parser.parse_args()
@@ -91,7 +91,7 @@ Functions
 
 # Save / Load Checkpoints Functions
 def saveCkpt(epoch, avgLoss, model, model_name):
-  savefilename = args.save_checkpoint_path + '/ckpt_' + str(model_name) + '_' + str(epoch) + '.tar'
+  savefilename = args.save_checkpoint_path + '/ckpt_disp_' + str(model_name) + '_' + args.dataset + '_' + str(epoch) + '.tar'
   torch.save({'epoch': epoch, 'state_dict': model.state_dict(), 'train_loss': avgLoss}, savefilename)
   print("saving checkpoint : {}".format(savefilename))
 
