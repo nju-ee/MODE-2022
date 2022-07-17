@@ -32,27 +32,27 @@ def conf_loader(path):
 """
 NOTE:
 
-Multi view 360 depth Dataset
-3000 scene points
-each point contains 6 pairs of left-right cassini preojection images
-(12,13,14,23,24,34), 6 disparity maps and 1 depth maps on view 1
+Multi-view 360-degree Dataset;
+3000 frames;
+each frame contains 6 pairs of left-right cassini preojection images
+(12,13,14,23,24,34), 6 disparity maps and 1 depth maps referenced to the coordinate system of camera 1;
 
 Dataset directory structure:
 Deep360
- - depth_on_1
-   - ep1_500frames
-   - ep2_500frames
-   - ep3_500frames
-   - ep4_500frames
-   - ep5_500frames
-   - ep6_500frames
-     - training
-     - testing
-     - validation
-       - rgb
-       - disp
-       - depth
-       - rgb_soiled
++-- README.txt
++-- ep1_500frames
+|   +-- training (350 frames)
+|   |   +-- rgb (each frame consists of 6 pairs of rectified panoramas)
+|   |   +-- rgb_soiled (soiled panoramas)
+|   |   +-- disp (each frame consists of 6 disparity maps)
+|   |   +-- depth (each frame consists of 1 ground truth depth map)
+|   +-- validation (50 frames)
+|   +-- testing (100 frames)
++-- ep2_500frames
++-- ep3_500frames
++-- ep4_500frames
++-- ep5_500frames
++-- ep6_500frames
 
 """
 
