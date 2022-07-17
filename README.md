@@ -99,6 +99,8 @@ Our pre-trained models can be found:
 
 [ModeFusion]()
 
+[ModeFusion_soiled]()
+
 ## Acknowledgements
 The sperical convolution in this paper refers to Coors et al.[1].
 
