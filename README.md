@@ -95,11 +95,11 @@ python test_fusion.py --datapath-dataset [path to Deep360 folder] --datapath-inp
 ## Pretrained Models
 Our pre-trained models can be found:
 
-[ModeDisparity]()
+[ModeDisparity](https://drive.google.com/file/d/123HOYyc6d9KRKV2sFVOhN0c0iEOofaz_/view?usp=sharing)
 
-[ModeFusion]()
+[ModeFusion](https://drive.google.com/file/d/1d-X0ygrhvYT3Wgwt3dbN2oD9oRkUcjVL/view?usp=sharing)
 
-[ModeFusion_soiled]()
+[ModeFusion_soiled](https://drive.google.com/file/d/10JCwp_RaW1113lb4ZfPBaovxBuoipSbF/view?usp=sharing)
 
 ## Acknowledgements
 The sperical convolution in this paper refers to Coors et al.[1].
