@@ -107,7 +107,7 @@ The sperical convolution in this paper refers to Coors et al.[1].
 The code of stack hourglass in stereo matching network is adapted from [PSMNet](https://github.com/JiaRenChang/PSMNet) [2].
 
 ## Citation
-If you use the Deep360 dataset, or find this project and paper helpful in your research, welcome to cite the paper.
+If you use the Deep360 dataset, or find this project and paper helpful in your research, please cite our paper.
 (The citaion could be slightly different when this paper is published formally. We will update it in time.)
 ```
 @inproceedings{Li_Jin2022MODE,
