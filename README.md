@@ -3,15 +3,21 @@ This repository contains the source code for our paper:
 
 MODE: Multi-view Omnidirectional Depth Estimation with 360$^\circ$ Cameras. ECCV 2022
 
-Coming soon!
+
 ## Dataset Deep360
 Deep360 is a large synthetic outdoor dataset for multi-view omnidirectional depth estimation. It contains 2100 frames for training, 300 frames for validation and 600 frames for testing. Panoramas, ground truth disparity and depth maps are presented to train and evaluate omnidirectional depth estimation algorithms. This dataset also contains "soiled version" of panoramas which are soiled or affected by three common outdoor factors: mud spots, water drops and glare.
 
-You can download Deep360 through this [link]() as a single zip file.
+You can download Deep360 through this [link](https://drive.google.com/drive/folders/1YJIaqDGWMTmGF0tyW8ktfG26xk-jSntg?usp=sharing). This folder contains 6 zip files corresponding to 6 episodes of Deep360, and a Readme.txt file for the introduction.
 
-The MD5 check codes of this zip file is: 
+You can use following MD5 checksums to check these files. The check sums are computed as described in RFC 1321. 
 ```
-
+ep1_500frames.zip : 77b93fe5aa01c1c5cf367c033c2d3f68
+ep2_500frames.zip : 3bb4e70a381edbf71c8e84bc0c0cb943
+ep3_500frames.zip : b2be6d4e03ea73e1979e198d94edb893
+ep4_500frames.zip : 648b093022e3e17f35bab1d191754b89
+ep5_500frames.zip : bc1acd148ae8d286420ac5e695de900c
+ep6_500frames.zip : ac3a763b31d1bd73989a8c428d505438
+README.txt : 4932221f7be68c69dd6a88dc0e9658bb
 ```
 The file structure of Deep360 is as follow:
 ```
@@ -95,11 +101,11 @@ python test_fusion.py --datapath-dataset [path to Deep360 folder] --datapath-inp
 ## Pretrained Models
 Our pre-trained models can be found:
 
-[ModeDisparity](https://drive.google.com/file/d/123HOYyc6d9KRKV2sFVOhN0c0iEOofaz_/view?usp=sharing)
+[ModeDisparity](https://drive.google.com/file/d/1ltQ4A-XoMNLXANt7sITYxD4Jx_TGBXiW/view?usp=sharing)
 
-[ModeFusion](https://drive.google.com/file/d/10JCwp_RaW1113lb4ZfPBaovxBuoipSbF/view?usp=sharing)
+[ModeFusion](https://drive.google.com/file/d/1qGDD4kVx6KwVsxEqxfQu_BREVN9Ha2DC/view?usp=sharing)
 
-[ModeFusion_soiled](https://drive.google.com/file/d/1d-X0ygrhvYT3Wgwt3dbN2oD9oRkUcjVL/view?usp=sharing)
+[ModeFusion_soiled](https://drive.google.com/file/d/1hUzMTl61ODUr7Dg5u58AdtW0A9ZPGcKn/view?usp=sharing)
 
 ## Acknowledgements
 The sperical convolution in this paper refers to Coors et al.[1].
