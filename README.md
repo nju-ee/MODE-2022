@@ -42,6 +42,9 @@ Please download and unzip the file, and follow the README.txt in the dataset fol
 MODE is a two-stage omnidirectional depth estimation framework with multi-view 360◦ cameras. The framework first estimates the depth maps from different camera pairs via omnidirectional stereo matching and then fuses the depth maps to achieve robustness against mud spots, water drops on camera lenses, and glare caused by intense light.
 
 ![The pipeline of the proposed two-stage MODE](./net_arch.png)
+
+This [video](https://www.youtube.com/watch?v=Fw-KR35UWgQ) shows the process of generating the Deep360 dataset and the results of MODE on real scenes.
+
 ## Requirements
 + gcc/g++ <=7.5.0 (to compile the sphere convolution operator)
 + PyTorch >=1.5.0
