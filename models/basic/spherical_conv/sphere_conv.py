@@ -31,7 +31,7 @@ class SphereConvFunction(Function):
     if not ctx.has_bias:
       bias = input.new_empty(1)  # fake tensor
     if not input.is_cuda:
-      raise NotImplementedError
+      raise NotImplementedError("Only support cuda tensor!")
     output = input.new_empty(SphereConvFunction._infer_shape(ctx, input, weight))
     ctx.save_for_backward(input, position, weight, bias)
     ctx._bufs = [input.new_empty(0), input.new_empty(0)]
