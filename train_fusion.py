@@ -97,7 +97,7 @@ def train(depthes, confs, rgbs, gt):
     gt = gt.cuda()
 
   #---------
-  mask = gt < args.maxdepth
+  mask = gt <= args.maxdepth  # includes sky area, to exclude sky set mask=gt<args.maxdepth(when arg.maxdepth==1000)
   mask.detach_()
   #----
 
@@ -126,7 +126,7 @@ def val(depthes, confs, rgbs, gt):
     gt = gt.cuda()
 
   #---------
-  mask = gt < args.maxdepth
+  mask = gt <= args.maxdepth  # includes sky area, to exclude sky set mask=gt<args.maxdepth
   #----
 
   with torch.no_grad():
