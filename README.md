@@ -1,7 +1,7 @@
 # MODE: Multi-view Omnidirectional Depth Estimation with 360$^\circ$ Cameras
 This repository contains the source code for our paper:
 
-MODE: Multi-view Omnidirectional Depth Estimation with 360$^\circ$ Cameras. ECCV 2022
+[MODE: Multi-view Omnidirectional Depth Estimation with 360$^\circ$ Cameras. ECCV 2022](https://link.springer.com/chapter/10.1007/978-3-031-19827-4_12)
 
 
 ## Dataset Deep360
